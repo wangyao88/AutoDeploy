@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <context:property-placeholder location="classpath:resources.properties" file-encoding="UTF-8"/>
+
+    <bean id="realm" class="cn.com.cis.mi.osp.security.Realm">
+        <property name="appCode" value="${sys.app.code}" />
+    </bean>
+
+    <!-- Shiro默认会使用Servlet容器的Session,可通过sessionMode属性来指定使用Shiro原生Session -->
+    <!-- 即<property name="sessionMode" value="native"/>,详细说明见官方文档 -->
+    <!-- 这里主要是设置自定义的单Realm应用,若有多个Realm,可使用'realms'属性代替 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="realm"/>
+        <!--<property name="sessionManager" ref="sessionManager"/>-->
+
+        <!-- 配置缓存 -->
+        <property name="cacheManager" ref="shiroEhcacheManager"></property>
+        <!-- 配置缓存 -->
+
+        <!-- shiro获取在线用户 -->
+        <property name="sessionManager" ref="sessionManager" />
+    </bean>
+
+    <!-- 配置缓存 -->
+    <bean id="shiroEhcacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager" >
+        <!--classpath是缓存属性的配置文件  -->
+        <property name="cacheManagerConfigFile" value="classpath:ehcache-shiro.xml" />
+    </bean>
+    <!-- 配置缓存 -->
+
+    <bean id="redirectFormAuthenticationFilter" class="cn.com.cis.mi.osp.security.RedirectFormAuthenticationFilter">
+        <property name="url" value="/"/>
+    </bean>
+
+    <!-- Shiro主过滤器本身功能十分强大,其强大之处就在于它支持任何基于URL路径表达式的、自定义的过滤器的执行 -->
+    <!-- Web应用中,Shiro可控制的Web请求必须经过Shiro主过滤器的拦截,Shiro对基于Spring的Web应用提供了完美的支持 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- Shiro的核心安全接口,这个属性是必须的 -->
+        <property name="securityManager" ref="securityManager"/>
+        <!--&lt;!&ndash; 要求登录时的链接(可根据项目的URL进行替换),非必须的属性,默认会自动寻找Web工程根目录下的"/login.jsp"页面 &ndash;&gt;-->
+        <property name="loginUrl" value="/login"/>
+        <!--&lt;!&ndash; 登录成功后要跳转的连接(本例中此属性用不到,因为登录成功后的处理逻辑在LoginController里硬编码为main.jsp了) &ndash;&gt;-->
+        <!--<property name="successUrl" value="/"/>-->
+        <!--&lt;!&ndash; 用户访问未对其授权的资源时,所显示的连接 &ndash;&gt;-->
+        <!--&lt;!&ndash; 若想更明显的测试此属性可以修改它的值,如unauthor.jsp,然后用[玄玉]登录后访问/admin/listUser.jsp就看见浏览器会显示unauthor.jsp &ndash;&gt;-->
+        <property name="unauthorizedUrl" value="/login"/>
+
+        <property name="filters">
+            <util:map>
+                <entry key="authc" value-ref="redirectFormAuthenticationFilter"/>
+            </util:map>
+        </property>
+
+        <property name="filterChainDefinitions">
+            <value>
+                /logout = logout
+                /css/** = anon
+                /image/** = anon
+                /scripts/** = anon
+                /** = authc
+            </value>
+        </property>
+    </bean>
+
+    <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!--shiro获取在线用户   org.apache.shiro.web.session.mgt.DefaultWebSessionManager begin-->
+    <bean id="sessionManager" class="cn.com.cis.mi.osp.security.SessionManager">
+        <!--<property name="globalSessionTimeout" value="120000"/>-->
+        <property name="sessionDAO" ref="sessionDAO"/>
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+        <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
+    </bean>
+    <bean id="sessionDAO" class="cn.com.cis.mi.osp.security.SessionDao">
+        <property name="appCode" value="${sys.app.code}" />
+    </bean>
+
+    <!-- 会话验证调度器 -->
+    <bean id="sessionValidationScheduler" class="org.apache.shiro.session.mgt.quartz.QuartzSessionValidationScheduler">
+        <property name="sessionValidationInterval" value="60000"/><!--每分钟检查一次会话是否失效-->
+        <property name="sessionManager" ref="sessionManager"/>
+    </bean>
+    <!--shiro获取在线用户   end-->
+</beans>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- 消费方应用名，用于计算依赖关系，不是匹配条件，不要与提供方一样 -->
+    <dubbo:application name="mi-api-nhl-smart"/>
+    <!-- 使用multicast广播注册中心暴露服务地址 -->
+    <dubbo:registry address="zookeeper://172.20.0.11:2181?client=zkclient" />
+
+    <!--<dubbo:consumer filter="monitor" />-->
+
+    <dubbo:reference id="doctorService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.DoctorService" timeout="1200000" />
+    <dubbo:reference id="recptionService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.RecptionService" timeout="1200000"/>
+    <dubbo:reference id="inquiryService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.InquiryService" timeout="1200000"/>
+    <dubbo:reference id="suggestService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.SuggestService" timeout="1200000"/>
+    <dubbo:reference id="logService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.LogService" timeout="1200000"/>
+    <dubbo:reference id="caseService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.CaseService" timeout="1200000"/>
+    <dubbo:reference id="consultationService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.ConsultationService" timeout="1200000"/>
+    <dubbo:reference id="uumService" protocol="dubbo" interface="cn.com.cis.mi.service.uum.UUMService" timeout="1200000"/>
+    <dubbo:reference id="aiService" protocol="dubbo" interface="cn.com.cis.ai.AiService" timeout="1200000" />
+    <dubbo:reference id="smsService" protocol="dubbo" interface="cn.com.cis.mi.service.msg.SmsService" timeout="1200000"/>
+    <dubbo:reference id="messageService" protocol="dubbo" interface="cn.com.cis.mi.service.msg.MessageService" timeout="1200000"/>
+    <dubbo:reference id="memberService" protocol="dubbo" interface="cn.com.cis.mi.service.app.MemberService" timeout="1200000"/>
+    <dubbo:reference id="memberFamilyService" protocol="dubbo" interface="cn.com.cis.mi.service.app.MemberFamilyService" timeout="1200000"/>
+    <dubbo:reference id="areaService" protocol="dubbo" interface="cn.com.cis.mi.service.base.AreaService" timeout="1200000"/>
+    <dubbo:reference id="hospitalService" protocol="dubbo" interface="cn.com.cis.mi.service.base.HospitalService" timeout="1200000"/>
+    <dubbo:reference id="metaDataService" protocol="dubbo" interface="cn.com.cis.mi.service.base.MetaDataService" timeout="1200000"/>
+    <dubbo:reference id="schoolService" protocol="dubbo" interface="cn.com.cis.mi.service.base.SchoolService" timeout="1200000"/>
+    <dubbo:reference id="schoolDepartService" protocol="dubbo" interface="cn.com.cis.mi.service.base.SchoolDepartService" timeout="1200000"/>
+    <dubbo:reference id="demoService" protocol="dubbo" interface="cn.com.cis.mi.service.app.DemoService" timeout="1200000"/>
+    <dubbo:reference id="userService" protocol="dubbo" interface="cn.com.cis.mi.service.app.UserService" timeout="1200000"/>
+    <dubbo:reference id="sysInfoService" protocol="dubbo" interface="cn.com.cis.mi.service.app.SysInfoService" timeout="1200000"/>
+   <dubbo:reference id="loginLogService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.LoginLogService" timeout="1200000"/>   
+ 
+    
+    <bean id="messageHelper" class="cn.com.cis.mi.api.common.MessageHelper"/>
+    <bean id="mongoHelper" class="cn.com.cis.mi.api.common.MongoHelper">
+        <property name="dbName" value="newhealth"></property>
+    </bean>
+    <bean id="xmppSender" class="cn.com.cis.mi.api.service.XmppSender">
+    	<property name="server" value="172.30.0.10"/>
+	<property name="serverName" value="zn01"/>
+	<property name="username" value="admin"/>
+	<property name="password" value="admin"/>
+    </bean>
+    <bean id="metaDataHelper" class="cn.com.cis.mi.api.common.MetaDataHelper"></bean>
+    <bean id="healthService" class="cn.com.cis.mi.api.service.HealthService"></bean>
+
+    <dubbo:reference id="chatLogsService" protocol="dubbo" interface="org.chatLogs.service.ChatLogsService" timeout="1200000"/>
+    <dubbo:reference id="attentionService" protocol="dubbo" interface="org.chatLogs.service.AttentionService" timeout="1200000"/>
+    <dubbo:reference id="mucPersistenceService" protocol="dubbo" interface="org.chatLogs.service.MucPersitenceService" timeout="1200000"/>
+
+</beans>
+

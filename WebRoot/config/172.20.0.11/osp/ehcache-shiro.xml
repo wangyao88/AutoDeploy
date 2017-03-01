@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache updateCheck="false" name="shiroCache">
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="180"
+            overflowToDisk="false"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="120"
+            memoryStoreEvictionPolicy = "LRU">
+    </defaultCache>
+</ehcache>
+<!--
+maxElementsInMemory ：cache 中最多可以存放的元素的数量。如果放入cache中的元素超过这个数值，有两种情况：
+1. 若overflowToDisk的属性值为true，会将cache中多出的元素放入磁盘文件中。
+2. 若overflowToDisk的属性值为false，会根据memoryStoreEvictionPolicy的策略替换cache中原有的元素。
+eternal ：是否永驻内存。如果值是true，cache中的元素将一直保存在内存中，不会因为时间超时而丢失，所以在这个值为true的时候，timeToIdleSeconds和timeToLiveSeconds两个属性的值就不起作用了。
+
+ 3. timeToIdleSeconds ：访问这个cache中元素的最大间隔时间。如果超过这个时间没有访问这个cache中的某个元素，那么这个元素将被从cache中清除。
+
+4. timeToLiveSeconds : cache中元素的生存时间。意思是从cache中的某个元素从创建到消亡的时间，从创建开始计时，当超过这个时间，这个元素将被从cache中清除。
+
+5. overflowToDisk ：溢出是否写入磁盘。系统会根据标签<diskStore path="java.io.tmpdir"/> 中path的值查找对应的属性值，如果系统的java.io.tmpdir的值是 D:\temp，写入磁盘的文件就会放在这个文件夹下。文件的名称是cache的名称，后缀名的data。如：CACHE_FUNC.data。
+
+6. diskExpiryThreadIntervalSeconds  ：磁盘缓存的清理线程运行间隔.
+
+7. memoryStoreEvictionPolicy ：内存存储与释放策略。有三个值：
+LRU －least recently used
+LFU －least frequently used
+FIFO－first in first out, the oldest element by creation time
+8.memoryStoreEvictionPolicy：当达到maxElementsInMemory限制时，Ehcache将会根据指定的策略去清理内存。默认策略是LRU（最近最少使用）
+diskPersistent ： 是否持久化磁盘缓存。当这个属性的值为true时，系统在初始化的时候会在磁盘中查找文件名为cache名称，后缀名为index的的文件，如CACHE_FUNC.index 。这个文件中存放了已经持久化在磁盘中的cache的index，找到后把cache加载到内存。要想把cache真正持久化到磁盘，写程序时必须注意，在是用net.sf.ehcache.Cache的void put (Element element)方法后要使用void flush()方法。
+ 更多说明可看ehcache自带的ehcache.xml的注释说明.
+-->

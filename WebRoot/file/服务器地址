@@ -1,0 +1,124 @@
+172.30.0.10	
+jetty	 
+   /home/mi-web-smart			   医略注册       http://172.30.0.10:8000/    test.120.link
+	 /home/mi-api-nhl-smart	   ipad医生服务   http://172.30.0.10:9000/    doctor.120.link
+	 /home/mi-api-nhl-member   iphone病人服务 http://172.30.0.10:9001/    member.120.link
+	 注：此处可能有很多问题：
+1.	配置文件没有修改：位于每个应用的/webapps/ROOT/WEB-INF/classes中
+到文件夹中的“运维配置.xlsx”中查看每个应用应该修改哪些相关配置
+2.	有可能会出现Jar包中的配置没有修改
+需要沈述华那边重新打包修改配置
+
+nginx 
+  /etc/nginx/nginx.conf
+	/var/log/nginx
+	nginx初始页面：/usr/share/nginx/html/ 的index.html中
+	nginx启动:/usr/sbin/nginx
+  nginx按照修改配置重启（无需杀掉进程）：/usr/sbin/nginx -s reload 
+	nginx的log：/var/log/nginx中的access.log,error.log
+  nginx配置https安全证书在certification中
+
+tomcat	
+  /home/apache-tomcat7...     8888 下载app             http://172.30.0.10:8888/     nginx代理    app.120.link
+	/home/tomcat-monitor   ---->8889      dubbo监控中心  http://172.30.0.10:889/dubbo nginx无代理  root/dubbomonitor
+	
+/home/certification   安全证书
+
+
+172.20.0.11
+zookeeper
+   /home/zookeeper
+   zookeeper的bin目录下 nohup ./zkServer.sh start & 默认为2181端口
+
+dubbo-monitor-simple
+   1. 打开zookeeper地址  确保protocol和jetty端口可用  netstat -apn|grep 7171
+   2.	进入解压目录的conf进行修改
+   3.	进入bin目录编辑start.sh
+查看脚本格式 :set ff? 
+#可以看到dos或unix的字样. 如果的确是dos格式的。
+然后用
+:set ff=unix #把它强制为unix格式的, 然后存盘退出。
+执行脚本：./start.sh 即可
+
+jetty 
+   /home/osp    新健康后台管理系统    http://172.20.0.11:8001  无nginx代理
+   /home/uum    中公网用户管理系统    http://172.20.0.11:8002  无nginx代理
+   注：此处可能有很多问题：
+1.	配置文件没有修改：位于每个应用的/webapps/ROOT/WEB-INF/classes中
+到文件夹中的“运维配置.xlsx”中查看每个应用应该修改哪些相关配置
+2.	Jar包中的配置没有修改
+需要沈述华那边重新打包修改配置
+
+service
+   /home/deploy_service
+   bin目录中./start.sh即可。控制台会输出结果OK。
+注：此处会有bug，若长时间没有输出OK，一直在启动，则kill掉该程序并查看日志，日志在bin的同级目录logs中。
+查看stdout.log中日志，如下图，若出现最后一句话，说明启动成功。若未出现，则查看service.log文件中的日志。根据日志解决问题。
+
+
+启动
+1.	Zookeeper  172.20.0.11
+    cd /home/zookeeper-3.4.9/bin
+    nohup ./zkServer.sh start &
+2.	启动dubbo-monitor-simple   172.20.0.11
+    cd /home/dubbo-monitor-simple-2.5.3/bin
+    ./start.sh
+3.	8个服务  172.20.0.11
+    cd /home/deploy_service/
+    8个文件夹 挨个进入bin目录 ./start.sh
+4.	两台服务器的5个应用程序（jetty）
+    1  172.20.0.11
+       cd /home/osp     ./jettystart.sh
+       cd /home/uum     ./jettystart.sh
+切换服务器
+    2  172.30.0.10	
+       /home/mi-api-nhl-member  ./jettystart.sh
+       /home/mi-api-nhl-smart   ./jettystart.sh
+       /home/mi-web-smart       ./jettystart.sh
+5.	Nginx  172.30.0.10	
+    /usr/sbin/nginx -s reload 
+6.	两个tomcat(监控和下载)  172.30.0.10	
+    cd /home/apache-tomcat-7.0.47/bin    ./startup.sh
+    cd /home/monitor-tomcat/bin          ./startup.sh
+
+
+
+   
+            
+
+
+
+
+
+
+linux常用命令：
+#查看并编辑文档
+vim xxxxxx	可编辑
+more xxxxxx	控制台查看  空格键是下拉
+tail xxxxx   ------->tail -100f xxxxxxx
+
+
+mv xxxxx修改
+rm -rf xxxxx删除
+cp -ri a b 从a移动b
+
+
+tar包解压
+tar -zxvf
+tar包压缩  
+tar -zcvf
+
+
+
+沈述华传包会到 172.20.0.11/home/cis-service 按日期传输
+每个service的bin目录下的启动文件：start.sh中查看启动语句，按照以下格式修改
+nohup “java $JAVA_OPTS $JAVA_MEM_OPTS $JAVA_DEBUG_OPTS $JAVA_JMX_OPTS -classpath $CONF_DIR:$LIB_JARS com.alibaba.dubbo.container.Main” > $STDOUT_FILE 2>&1 &
+
+
+
+
+找进程
+ps -ef|grep xxxx(mi-service-app/mi-web-smart,uum)
+kill -9 进程号1，进程号2.....
+
+netstat -apn|grep 8080

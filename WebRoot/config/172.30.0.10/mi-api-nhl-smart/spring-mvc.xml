@@ -1,0 +1,177 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:property-placeholder location="classpath:resources.properties"/>
+    <aop:aspectj-autoproxy expose-proxy="true" proxy-target-class="true"/>
+    <!-- 开启controller注解支持 -->
+    <!-- 注意事项请参考：http://jinnianshilongnian.iteye.com/blog/1762632 -->
+    <context:component-scan base-package="cn.com.cis.mi.api.controller" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+    </context:component-scan>
+
+    <mvc:annotation-driven>
+        <mvc:message-converters register-defaults="true">
+            <!-- 配置Fastjson支持 -->
+            <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <!--<value>text/html;charset=UTF-8</value>-->
+                        <value>application/json</value>
+                    </list>
+                </property>
+                <property name="features">
+                    <list>
+                        <value>WriteMapNullValue</value>
+                        <value>QuoteFieldNames</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+
+    <!--<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">-->
+        <!--<property name="staticMethod" value="org.apache.shiro.SecurityUtils.setSecurityManager"/>-->
+        <!--<property name="arguments" ref="securityManager"/>-->
+    <!--</bean>-->
+
+    <!--<mvc:view-controller path="/" view-name="redirect:/home"/>-->
+    <!--&lt;!&ndash; 当在web.xml 中   DispatcherServlet使用 <url-pattern>/</url-pattern> 映射时，能映射静态资源 &ndash;&gt;-->
+    <!--<mvc:default-servlet-handler/>-->
+
+    <!-- 静态资源映射 -->
+    <mvc:resources mapping="/static/**" location="/WEB-INF/static/"/>
+
+    <!--&lt;!&ndash; 拦截器设置 &ndash;&gt;-->
+    <!--<mvc:interceptors>-->
+        <!--<mvc:interceptor>-->
+            <!--&lt;!&ndash;  需要被拦截的路径 &ndash;&gt;-->
+            <!--<mvc:mapping path="/**"/>-->
+            <!--&lt;!&ndash; 拦截处理的interceptor &ndash;&gt;-->
+            <!--<bean class="cn.com.cis.mi.api.interceptor.LoginInterceptor">-->
+                <!--<property name="allowUrls">-->
+                    <!--<list>-->
+                        <!--&lt;!&ndash; 如果请求中包含以下路径，则不进行拦截 &ndash;&gt;-->
+                        <!--<value>/Login</value>-->
+                    <!--</list>-->
+                <!--</property>-->
+            <!--</bean>-->
+        <!--</mvc:interceptor>-->
+        <!--<bean class="cn.com.cis.mi.api.interceptor.SetCommonDataInterceptor">-->
+        <!--</bean>-->
+    <!--</mvc:interceptors>-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="cn.com.cis.mi.common.web.LogInterceptor"/>
+        </mvc:interceptor>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="cn.com.cis.mi.common.web.ApiErrorInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+
+    <!--&lt;!&ndash; 内容协商管理器  &ndash;&gt;-->
+    <!--&lt;!&ndash;1、首先检查路径扩展名（如my.pdf）；2、其次检查Parameter（如my?format=pdf）；3、检查Accept Header&ndash;&gt;-->
+    <!--<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">-->
+        <!--&lt;!&ndash; 扩展名至mimeType的映射,即 /user.json => application/json &ndash;&gt;-->
+        <!--<property name="favorPathExtension" value="true"/>-->
+        <!--&lt;!&ndash; 用于开启 /userinfo/123?format=json 的支持 &ndash;&gt;-->
+        <!--<property name="favorParameter" value="true"/>-->
+        <!--<property name="parameterName" value="format"/>-->
+        <!--&lt;!&ndash; 是否忽略Accept Header &ndash;&gt;-->
+        <!--<property name="ignoreAcceptHeader" value="false"/>-->
+
+        <!--<property name="mediaTypes"> &lt;!&ndash;扩展名到MIME的映射；favorPathExtension, favorParameter是true时起作用  &ndash;&gt;-->
+            <!--<value>-->
+                <!--json=application/json-->
+                <!--xml=application/xml-->
+                <!--html=text/html-->
+            <!--</value>-->
+        <!--</property>-->
+        <!--&lt;!&ndash; 默认的content type &ndash;&gt;-->
+        <!--<property name="defaultContentType" value="text/html"/>-->
+    <!--</bean>-->
+
+
+    <!--&lt;!&ndash; ========================= VIEW定义 ========================= &ndash;&gt;-->
+    <!--&lt;!&ndash; 内容协商视图解析器；根据客户端的不同的请求决定不同的 view进行响应, 如 /blog/1.json /blog/1.xml &ndash;&gt;-->
+    <!--&lt;!&ndash; 会自动根据解析的contentType来决定使用哪个视图解析器（默认使用整个web应用中的viewResolver） &ndash;&gt;-->
+    <!--<bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" p:order="0">-->
+        <!--&lt;!&ndash; 内容协商管理器 用于决定media type &ndash;&gt;-->
+        <!--<property name="contentNegotiationManager" ref="contentNegotiationManager"/>-->
+        <!--&lt;!&ndash; 默认视图 放在解析链最后 &ndash;&gt;-->
+        <!--<property name="defaultViews">-->
+            <!--<list>-->
+                <!--&lt;!&ndash;<bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>&ndash;&gt;-->
+                <!--<bean class="com.alibaba.fastjson.support.spring.FastJsonJsonView" />-->
+                <!--&lt;!&ndash;<bean class="org.springframework.web.servlet.view.xml.MarshallingView"/>&ndash;&gt;-->
+            <!--</list>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+    <!-- 默认的视图解析器 在上边的解析错误时使用 (默认使用html)- -->
+    <bean id="defaultViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:order="1">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="contentType" value="text/html"/>
+        <property name="prefix" value="/WEB-INF/jsp"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--取本地properties-->
+    <bean id="configProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+          <property name="locations">
+               <list>
+                   <value>classpath:resources.properties</value>
+               </list>
+          </property>
+        <property name="fileEncoding" value="UTF-8"></property>
+    </bean>
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+        <property name="properties" ref="configProperties" />
+    </bean>
+
+    <!-- SpringMVC上传文件时，需要配置MultipartResolver处理器 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+       <property name="defaultEncoding" value="UTF-8" />
+        <!-- 指定所上传文件的总大小不能超过200KB。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+       <property name="maxUploadSize" value="104857600" />
+   </bean>
+
+    <!-- SpringMVC在超出上传文件限制时，会抛出org.springframework.web.multipart.MaxUploadSizeExceededException -->
+    <!-- 该异常是SpringMVC在检查上传的文件信息时抛出来的，而且此时还没有进入到Controller方法中 -->
+    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <!-- 遇到MaxUploadSizeExceededException异常时，自动跳转到XXX页面 -->
+                <prop key="org.springframework.web.multipart.MaxUploadSizeExceededException">跳转XXX页面</prop>
+            </props>
+        </property>
+    </bean>
+    <!--&lt;!&ndash; 文件上传相关 &ndash;&gt;-->
+    <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">-->
+        <!--&lt;!&ndash;one of the properties available;the maximum upload size in bytes 100M&ndash;&gt;-->
+        <!--<property name="maxUploadSize" value="104857600"/>-->
+    <!--</bean>-->
+
+    <!--&lt;!&ndash; 控制器异常处理 &ndash;&gt;-->
+    <!--<bean id="exceptionHandlerExceptionResolver" class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver">-->
+        <!--<property name="contentNegotiationManager" ref="contentNegotiationManager"/>-->
+    <!--</bean>-->
+
+    <!--<bean class="com.sishuok.es.extra.exception.web.DefaultExceptionHandler"/>-->
+
+
+    <!--&lt;!&ndash;<import resource="spring-speed-up.xml"/>&ndash;&gt;-->
+</beans>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- 消费方应用名，用于计算依赖关系，不是匹配条件，不要与提供方一样 -->
+    <dubbo:application name="mi-osp"/>
+
+    <!-- 使用multicast广播注册中心暴露发现服务地址 -->
+    <dubbo:registry address="zookeeper://172.20.0.11:2181?client=zkclient"/>
+
+    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
+    <dubbo:reference id="demoService" protocol="dubbo" interface="cn.com.cis.mi.service.p1.DemoService" timeout="1200000"/>
+    <dubbo:reference id="uumDemoService" protocol="dubbo" interface="cn.com.cis.mi.service.uum.DemoService" timeout="1200000"/>
+    <dubbo:reference id="uumService" protocol="dubbo" interface="cn.com.cis.mi.service.uum.UUMService" timeout="1200000"/>
+    <dubbo:reference id="articleService" protocol="dubbo" interface="cn.com.cis.mi.service.app.ArticleService" timeout="1200000"/>
+    <dubbo:reference id="suggestService" protocol="dubbo" interface="cn.com.cis.mi.service.app.SuggestService" timeout="1200000"/>
+    <dubbo:reference id="blacklistService" protocol="dubbo" interface="cn.com.cis.mi.service.app.BlacklistService" timeout="1200000"/>
+    <dubbo:reference id="authenticationService" protocol="dubbo" interface="cn.com.cis.mi.service.app.AuthenticationService" timeout="1200000"/>
+    <dubbo:reference id="memberService" protocol="dubbo" interface="cn.com.cis.mi.service.app.MemberService" timeout="1200000"/>
+    <dubbo:reference id="messageService" protocol="dubbo" interface="cn.com.cis.mi.service.msg.MessageService" timeout="1200000"/>
+    <dubbo:reference id="spConfirmService" protocol="dubbo" interface="cn.com.cis.mi.service.zhanjiang.SPConfirmService" timeout="1200000"/>
+    <dubbo:reference id="userService" protocol="dubbo" interface="cn.com.cis.mi.service.app.UserService" timeout="1200000"/>
+    <dubbo:reference id="memerFamilyService" protocol="dubbo" interface="cn.com.cis.mi.service.app.MemberFamilyService" timeout="1200000"/>
+    <dubbo:reference id="autognosisService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.AutognosisService" timeout="1200000"/>
+    <dubbo:reference id="evaluateService" protocol="dubbo" interface="cn.com.cis.mi.service.zhanjiang.EvaluateService" timeout="1200000"/>
+    <dubbo:reference id="doctorGroup_DoctorService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.DoctorGroup_DoctorService" timeout="1200000"/>
+    <dubbo:reference id="orgService" protocol="dubbo" interface="cn.com.cis.mi.service.base.OrgService" timeout="1200000"/>
+    <dubbo:reference id="hospitalService" protocol="dubbo" interface="cn.com.cis.mi.service.base.HospitalService" timeout="1200000"/>
+    <dubbo:reference id="caseService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.CaseService" timeout="1200000"/>
+    <dubbo:reference id="vaccineService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.VaccineService" timeout="1200000"/>
+    <dubbo:reference id="myHomeDoctorGroupService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.MyHomeDoctorGroupService" timeout="1200000"/>
+    <dubbo:reference id="appointmentService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.AppointmentService" timeout="1200000"/>
+    <dubbo:reference id="appointResourceService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.AppointResourceService" timeout="1200000"/>
+    <dubbo:reference id="medicalRecordService" protocol="dubbo" interface="cn.com.cis.mi.service.zhanjiang.MedicalRecordService" timeout="1200000"/>
+    <dubbo:reference id="insuranceService" protocol="dubbo" interface="cn.com.cis.mi.service.info.InsuranceService" timeout="1200000"/>
+    <dubbo:reference id="favoritesService" protocol="dubbo" interface="cn.com.cis.mi.service.app.FavoritesService" timeout="1200000"/>
+    <dubbo:reference id="designatedService" protocol="dubbo" interface="cn.com.cis.mi.service.zhanjiang.DesignatedService" timeout="1200000"/>
+    <dubbo:reference id="pettyClaimService" protocol="dubbo" interface="cn.com.cis.mi.service.zhanjiang.PettyClaimService" timeout="1200000"/>
+    <dubbo:reference id="homeDoctorGroupService" protocol="dubbo" interface="cn.com.cis.mi.service.nhl.HomeDoctorGroupService" timeout="1200000"/>
+    <dubbo:reference id="articleShareService" protocol="dubbo" interface="cn.com.cis.mi.service.app.ArticleShareService" timeout="1200000"/>
+    <dubbo:reference id="p1Service" protocol="dubbo" interface="cn.com.cis.mi.service.p1.P1Service" timeout="1200000"/>
+    <dubbo:reference id="accountBillService" protocol="dubbo" interface="cn.com.cis.mi.service.finance.AccountBillService" timeout="1200000"/>
+    <dubbo:reference id="cardService" protocol="dubbo" interface="cn.com.cis.mi.service.app.CardService" timeout="1200000"/>
+    <dubbo:reference id="districtService" protocol="dubbo" interface="cn.com.cis.mi.service.base.DistrictService" timeout="1200000"/>
+    <dubbo:reference id="insuranceAreaService" protocol="dubbo" interface="cn.com.cis.mi.service.base.InsuranceAreaService" timeout="1200000"/>
+    <dubbo:reference id="medicalOrgService" protocol="dubbo" interface="cn.com.cis.mi.service.p1.HospitalService" timeout="1200000"/>
+    <dubbo:reference id="providerService" protocol="dubbo" interface="cn.com.cis.mi.service.p1.ProviderService" timeout="1200000"/>
+    <dubbo:reference id="areaService" protocol="dubbo" interface="cn.com.cis.mi.service.base.AreaService" timeout="1200000"/>
+    <dubbo:reference id="doctorGroupService" protocol="dubbo" interface="cn.com.cis.mi.service.base.DoctorGroupService" timeout="1200000"/>
+    <dubbo:reference id="smsService" protocol="dubbo" interface="cn.com.cis.mi.service.msg.SmsService" timeout="1200000"/>
+
+    <!--smart服务-->
+    <dubbo:reference id="metaDataService" protocol="dubbo" interface="cn.com.cis.mi.service.base.MetaDataService" timeout="1200000"/>
+    <dubbo:reference id="medicalDepartService" protocol="dubbo" interface="cn.com.cis.mi.service.base.MedicalDepartService" timeout="1200000"/>
+    <dubbo:reference id="blackListService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.BlackListService" timeout="1200000"/>
+    <dubbo:reference id="suggestionService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.SuggestService" timeout="1200000"/>
+    <dubbo:reference id="medicalSystemService" protocol="dubbo" interface="cn.com.cis.mi.service.base.MedicalSystemService" timeout="1200000"/>
+    <dubbo:reference id="schoolService" protocol="dubbo" interface="cn.com.cis.mi.service.base.SchoolService" timeout="1200000"/>
+    <dubbo:reference id="schoolDepartService" protocol="dubbo" interface="cn.com.cis.mi.service.base.SchoolDepartService" timeout="1200000"/>
+    <dubbo:reference id="onlineUserService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.OnlineUserService" timeout="1200000"/>
+    <dubbo:reference id="doctorService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.DoctorService" timeout="1200000" />
+    <dubbo:reference id="smartAuthenticationService" protocol="dubbo" interface="cn.com.cis.mi.service.smart.AuthenticationService" timeout="1200000" />
+    <dubbo:reference id="aiService" protocol="dubbo" interface="cn.com.cis.ai.AiService" timeout="1200000"/>
+
+
+    <bean id="metaDataHelper" class="cn.com.cis.mi.osp.common.MetaDataHelper"></bean>
+    <bean id="messageHelper" class="cn.com.cis.mi.osp.common.MessageHelper"></bean>
+    <bean id="xmppSender" class="cn.com.cis.mi.osp.service.XmppSender">
+        <property name="server" value="172.30.0.10"/>
+        <property name="serverName" value="zn01"/>
+        <property name="username" value="admin"/>
+        <property name="password" value="admin"/>
+    </bean>
+    <bean id="healthRcdsService" class="cn.com.cis.mi.osp.service.HealthRcdsService"></bean>
+</beans>

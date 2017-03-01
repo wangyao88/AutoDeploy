@@ -1,0 +1,31 @@
+
+
+
+
+wget https://pypi.python.org/packages/source/I/IPy/IPy-0.81.tar.gz
+
+wget http://www.dnspython.org/kits/1.9.4/dnspython-1.9.4.tar.gz
+
+
+172.30.0.10	
+mi-web-smart
+mi-api-nhl-smart
+mi-api-nhl-member
+
+cn.com.cis.smart.apk
+newhealthylife.apk
+newhealthylife.ipa
+nhl.smart.ipa
+
+172.20.0.11
+cn-cis-web
+mi-service-app
+mi-service-base
+mi-service-finance
+mi-service-msg
+mi-service-nhl
+mi-service-p1
+mi-service-smart
+mi-service-uum
+osp
+uum
