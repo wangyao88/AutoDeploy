@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import lombok.extern.java.Log;
+
 import com.cis.deploy.bean.Command;
 import com.cis.deploy.manager.DeployManager;
 import com.cis.server.bean.Server;
@@ -17,6 +19,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
+@Log
 public class ServerConnManager {
 	
 	private static Map<ServerType,Session> sessionPool = new HashMap<ServerType,Session>();
@@ -30,10 +33,23 @@ public class ServerConnManager {
 				Session nSeesion = ServerConnManager.getSession(nginx);
 				sessionPool.put(ServerType.ZOOKEEPER, zSeesion);
 				sessionPool.put(ServerType.NGINX, nSeesion);
-				System.out.println("初始化session连接池成功!");
+				log.info("初始化session连接池成功!");
 			}
 		} catch (Exception e) {
-			System.out.println("初始化session连接池出错!"+e.getLocalizedMessage());
+			log.info("初始化session连接池出错!"+e.getLocalizedMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	private static boolean initSessionPoolByServerType(ServerType serverType){
+		try {
+			Server server = DeployManager.getInstance().getServerService().getServerByType(serverType);
+			Session session = ServerConnManager.getSession(server);
+			sessionPool.put(serverType, session);
+			log.info("初始化"+serverType+"session连接池成功!");
+		} catch (Exception e) {
+			log.info("初始化"+serverType+"session连接池出错!"+e.getLocalizedMessage());
 			return false;
 		}
 		return true;
@@ -48,10 +64,10 @@ public class ServerConnManager {
 						seesion.disconnect();
 					}
 				}
-				System.out.println("清空session连接池成功!");
+				log.info("清空session连接池成功!");
 			}
 		} catch (Exception e) {
-			System.out.println("清空session连接池出错!"+e.getLocalizedMessage());
+			log.info("清空session连接池出错!"+e.getLocalizedMessage());
 		}
 	}
 	
@@ -59,8 +75,8 @@ public class ServerConnManager {
 		Session session = null;
 		try {
 			JSch sshSingleton = new JSch();
-			System.out.println("开始获取session连接");
-			System.out.println(server);
+			log.info("开始获取session连接");
+			log.info(server.toString());
 			session = sshSingleton.getSession(server.getUserName(), server.getHost());
 			session.setPassword(server.getPassword());
 			Properties config = new Properties();
@@ -68,9 +84,9 @@ public class ServerConnManager {
 			session.setConfig(config);
 			session.connect();
 		} catch (Exception e) {
-			System.out.println("获取session连接失败!"+e.getLocalizedMessage());
+			log.info("获取session连接失败!"+e.getLocalizedMessage());
 		}
-		System.out.println("获取session连接成功");
+		log.info("获取session连接成功");
 		return session;
 	}
 	
@@ -79,6 +95,10 @@ public class ServerConnManager {
 			return null;
 		}
 		Session session = ServerConnManager.sessionPool.get(serverType);
+		if(session == null || !session.isConnected()){
+			initSessionPoolByServerType(serverType);
+		}
+		session = ServerConnManager.sessionPool.get(serverType);
 		List<String> result = new ArrayList<String>();
 		ChannelExec channel = null;
 		BufferedReader bufferedReader = null;
@@ -89,12 +109,13 @@ public class ServerConnManager {
 			bufferedReader = new BufferedReader(inputStreamReader);
 			channel.setCommand(command.getCommand());
 			channel.connect();
+			log.info("执行命令: " + command.getCommand());
 			String msg;
 			while ((msg = bufferedReader.readLine()) != null) {
 				result.add(msg);
 			}
-			channel.disconnect();
 		} catch (Exception e) {
+			log.info("执行命令["+command.getCommand()+"]失败。失败原因:"+e.getLocalizedMessage());
 			e.printStackTrace();
 		}finally{
 			try {
@@ -153,18 +174,24 @@ public class ServerConnManager {
 		return command;
 	}
 	
+	public static void batchExecuteCommandsInSameServerType(ServerType serverType,List<Command> commands) {
+		for(Command command : commands){
+			executeCommand(serverType,command);
+		}
+	}
+	
 	public static void main(String[] args) {
 		Server server = new Server();
-		server.setUserName("wangyao");
+		server.setUserName("root");
 		server.setPassword("wangyao");
-		server.setHost("192.168.25.129");
+		server.setHost("192.168.25.130");
 		Command command = new Command();
-		command.setCommand("md5sum /home/wangyao/program/python/*.tar.gz");
+		command.setCommand("/home/osp/jettystart.sh");//  pwd
 		executeCommand(server,command);
 		List<String> result = command.getResult();
 		for(int i = 0; i < result.size(); i++){
 			System.out.println(result.get(i));
 		}
 	}
-
+	
 }

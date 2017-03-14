@@ -33,7 +33,7 @@ public class PropertyServlet extends HttpServlet {
 		OutputStreamWriter writerStream = null;
 		try {
 			property = (Property) request.getSession().getAttribute("property");
-		    writerStream = new OutputStreamWriter(new FileOutputStream(new File(property.getPath())),"UTF-8");
+		    writerStream = new OutputStreamWriter(new FileOutputStream(new File(property.getFilePath())),"UTF-8");
 			writerStream.write(request.getParameter("content"));
 			writerStream.flush();
 			//由本地放到指定位置

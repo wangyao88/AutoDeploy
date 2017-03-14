@@ -10,7 +10,7 @@ public class ScheduledMain {
 		ScanTask scanTask = ScanTask.getInstance();
 		ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 		// 第二个参数为首次执行的延时时间，第三个参数为定时执行的间隔时间
-		service.scheduleAtFixedRate(scanTask, 1, 10, TimeUnit.MINUTES);
+		service.scheduleAtFixedRate(scanTask, 1, 2, TimeUnit.MINUTES);
 	}
 
 	public static void main(String[] args) {

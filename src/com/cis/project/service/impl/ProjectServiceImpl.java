@@ -1,5 +1,7 @@
 package com.cis.project.service.impl;
 
+import java.util.List;
+
 import com.cis.common.util.ServerConnManager;
 import com.cis.deploy.bean.Command;
 import com.cis.deploy.bean.DeployInfo;
@@ -90,13 +92,14 @@ public class ProjectServiceImpl implements ProjectService{
 		try {
 	    	//service /bin
 	    	if(DeployType.SERVICE.equals(deployInfo.getDeployType())){
-	    		command = DeployManager.getInstance().getCommandService().getRestartService(deployInfo);
+	    	    command = DeployManager.getInstance().getCommandService().getRestartService(deployInfo);
+	    		
 	    	}
 	    	//jetty 
 	    	if(DeployType.JETTY.equals(deployInfo.getDeployType())){
 	    		command = DeployManager.getInstance().getCommandService().getRestartJetty(deployInfo);
 	    	}
-	        ServerConnManager.executeCommand(deployInfo.getServerType(), command);
+	    	ServerConnManager.executeCommand(deployInfo.getServerType(), command);
 		} catch (Exception e) {
 			return false;
 		}

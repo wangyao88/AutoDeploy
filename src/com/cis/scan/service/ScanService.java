@@ -14,4 +14,6 @@ public interface ScanService {
 	
 	public boolean scan();
 
+	public void deleteAllTempFlie();
+
 }

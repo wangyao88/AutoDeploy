@@ -1,8 +1,11 @@
 package com.cis.task;
 
+import lombok.extern.java.Log;
+
 import com.cis.deploy.service.DeployService;
 import com.cis.deploy.service.impl.DeployServiceImpl;
 
+@Log
 public class ScanTask implements Runnable{
 	
 	private DeployService service = null;
@@ -17,14 +20,14 @@ public class ScanTask implements Runnable{
 	}
 	
 	public void run() {
-		System.out.println("开始本次自动部署任务");
+		log.info("开始本次自动部署任务");
 		if(isDeploying){
 			return;
 		}
 		isDeploying = true;
 		service.deploy();
 		isDeploying = false;
-		System.out.println("结束本次自动部署任务");
+		log.info("结束本次自动部署任务");
 	}
 
 }

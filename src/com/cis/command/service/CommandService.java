@@ -1,5 +1,7 @@
 package com.cis.command.service;
 
+import java.util.List;
+
 import com.cis.deploy.bean.Command;
 import com.cis.deploy.bean.DeployInfo;
 import com.cis.properties.bean.Property;
@@ -13,10 +15,16 @@ public interface CommandService {
 	public Command getClearUploadDirCommand(String scanPath);
 
 	public Command getTransferFile(DeployInfo deployInfo);
+	
+	public Command getTransferFile(String path);
 
 	public Command getCopyFile(DeployInfo deployInfo);
+	
+	public Command getCopyFile(String  fileName);
 
 	public Command getTarFile(DeployInfo deployInfo);
+	
+	public Command getTarFile(String fileName);
 
 	public Command getStopService(DeployInfo deployInfo);
 
@@ -59,5 +67,9 @@ public interface CommandService {
 	public Command getCopyFile(Property property);
 
 	public Command getSCopyFile(Property property);
+
+	public Command getMkdirBeforeCopyFile(Property property);
+
+	public Command getDeleteFiles(String path);
 
 }

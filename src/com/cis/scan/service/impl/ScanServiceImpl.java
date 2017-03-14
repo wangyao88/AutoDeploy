@@ -1,7 +1,11 @@
 package com.cis.scan.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,12 +16,13 @@ import com.cis.deploy.manager.DeployManager;
 import com.cis.scan.service.ScanService;
 import com.cis.server.bean.ServerType;
 
+@Log
 public class ScanServiceImpl implements ScanService{
 
 	public boolean isUploadSuccess() {
 		List<String> contents = getMD5TXTContent();
 		if(contents.isEmpty()){
-			System.out.println("无上传文件");
+			log.info("无上传文件");
 			return false;
 		}
 		setUploadFiles(contents);
@@ -77,8 +82,8 @@ public class ScanServiceImpl implements ScanService{
 	}
 
 	public void clearUploadDir() {
+		log.info("开始删除上传文件");
 		String path = DeployManager.getInstance().getServerService().getScanPath()+"/*";
-//		Server server = serverService.getZookeeperServer();
 		Command command = DeployManager.getInstance().getCommandService().getClearUploadDirCommand(path);
 		ServerConnManager.executeCommand(ServerType.ZOOKEEPER, command);
 	}
@@ -89,10 +94,10 @@ public class ScanServiceImpl implements ScanService{
 		for(int i = 0; i < 8; i++){
 		    isUploadSuccess = isUploadSuccess();
 			if(isUploadSuccess){
-				System.out.println("上传成功");
+				log.info("上传成功");
 				break;
 			}
-			System.out.println("尚未上传成功");
+			log.info("尚未上传成功");
 			try {
 				TimeUnit.SECONDS.sleep(1);
 			} catch (InterruptedException e) {
@@ -101,10 +106,38 @@ public class ScanServiceImpl implements ScanService{
 		}
 		if(!isUploadSuccess){
 			//上传失败 清空文件夹
-			System.out.println("上传失败");
+			log.info("上传失败");
 			clearUploadDir();
 		}
 		return isUploadSuccess;
+	}
+
+	public void deleteAllTempFlie() {
+		try {
+			log.info("30秒后开始删除临时文件");
+			TimeUnit.SECONDS.sleep(30);
+			List<Command> zookeeperCommands = new ArrayList<Command>();
+			List<Command> nginxCommands = new ArrayList<Command>();
+			Command command = getDeleteTempFileCommand("scanPath");
+			zookeeperCommands.add(command);
+			command = getDeleteTempFileCommand("deploy.tempPath");
+			zookeeperCommands.add(command);
+			nginxCommands.add(command);
+		    command = getDeleteTempFileCommand("deploy.propertiesPath");
+			zookeeperCommands.add(command);
+			nginxCommands.add(command);
+			ServerConnManager.batchExecuteCommandsInSameServerType(ServerType.ZOOKEEPER, zookeeperCommands);
+			ServerConnManager.batchExecuteCommandsInSameServerType(ServerType.NGINX, nginxCommands);
+		} catch (Exception e) {
+			log.info("删除临时文件失败");
+			e.printStackTrace();
+		}
+	}
+
+	private Command getDeleteTempFileCommand(String key) {
+		String path = DeployManager.getInstance().getPropertiesValue().get(key)+"/*";
+		Command command = DeployManager.getInstance().getCommandService().getDeleteFiles(path);
+		return command;
 	}
 
 }

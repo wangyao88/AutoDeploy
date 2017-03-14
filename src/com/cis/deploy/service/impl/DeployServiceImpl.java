@@ -21,6 +21,7 @@ public class DeployServiceImpl implements DeployService {
 	 */
 	public DeployInfo getDeployInfoWithFileName(String fileName) {
 		String realFileName = fileName.split(Constants.SPLIT)[1];
+		realFileName = realFileName.replaceAll(".tar.gz", "");
 		String md5Value = fileName.split(Constants.SPLIT)[0];
 		DeployInfo deployInfo = new DeployInfo(); 
 		Map<String,String> propertiesValue = DeployManager.getInstance().getPropertiesValue();

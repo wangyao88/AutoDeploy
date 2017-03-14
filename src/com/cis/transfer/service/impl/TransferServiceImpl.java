@@ -1,5 +1,8 @@
 package com.cis.transfer.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.cis.common.util.ServerConnManager;
 import com.cis.deploy.bean.Command;
 import com.cis.deploy.bean.DeployInfo;
@@ -34,16 +37,22 @@ public class TransferServiceImpl implements TransferService{
 	}
 
 	public boolean transferFileAfterUpdatedProperties(Property property) {
-		Command command = null;
+		List<Command> commands = new ArrayList<Command>();
 		try {
 			ServerType serverType = ServerType.getServerType(property.getFilePath());
+			Command mkdirCommand = DeployManager.getInstance().getCommandService().getMkdirBeforeCopyFile(property);
+			commands.add(mkdirCommand);
+			Command copyCommand = null;
 			if(serverType.equals(ServerType.ZOOKEEPER)){
-				command = DeployManager.getInstance().getCommandService().getCopyFile(property);
+				copyCommand = DeployManager.getInstance().getCommandService().getCopyFile(property);
 			}
 			if(serverType.equals(ServerType.NGINX)){
-				command = DeployManager.getInstance().getCommandService().getSCopyFile(property);
+				copyCommand = DeployManager.getInstance().getCommandService().getSCopyFile(property);
 			}
-//			ServerConnManager.executeCommand(serverType, command);
+			if(copyCommand != null){
+				commands.add(copyCommand);
+			}
+			ServerConnManager.batchExecuteCommandsInSameServerType(serverType, commands);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

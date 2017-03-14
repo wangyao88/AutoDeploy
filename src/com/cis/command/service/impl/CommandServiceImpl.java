@@ -1,7 +1,9 @@
 package com.cis.command.service.impl;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import com.cis.command.service.CommandService;
@@ -57,6 +59,23 @@ public class CommandServiceImpl implements CommandService{
 		command.setCommand(cmd.toString());
 		return command;
 	}
+	
+	public Command getTransferFile(String path) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("scp -r ");
+		cmd.append(getMap().get("scanPath"));
+		cmd.append("/");
+		cmd.append(path);
+		cmd.append(" ");
+		cmd.append(getMap().get("nginx.userName"));
+		cmd.append("@");
+		cmd.append(getMap().get("nginx.host"));
+		cmd.append(":");
+		cmd.append(getMap().get("deploy.tempPath"));
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
 
 	public Command getCopyFile(DeployInfo deployInfo) {
 		//cp /home/cis-service/mi-web-smart.tar.gz /home/tempPath
@@ -71,6 +90,20 @@ public class CommandServiceImpl implements CommandService{
 		command.setCommand(cmd.toString());
 		return command;
 	}
+	
+	public Command getCopyFile(String  fileName) {
+		//cp /home/cis-service/mi-web-smart.tar.gz /home/tempPath
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("cp ");
+		cmd.append(getMap().get("scanPath"));
+		cmd.append("/");
+		cmd.append(fileName);
+		cmd.append(" ");
+		cmd.append(getMap().get("deploy.tempPath"));
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
 
 	public Command getTarFile(DeployInfo deployInfo) {
 		//tar -zxvf /home/tempPath/mi-web-smart.tar.gz
@@ -79,6 +112,21 @@ public class CommandServiceImpl implements CommandService{
 		cmd.append(getMap().get("deploy.tempPath"));
 		cmd.append("/");
 		cmd.append(deployInfo.getFileName());
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
+	
+	public Command getTarFile(String fileName) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("tar -zxvf ");
+		cmd.append(getMap().get("deploy.tempPath"));
+		cmd.append("/");
+		cmd.append(fileName);
+		cmd.append(" ");
+		cmd.append("-C ");
+		cmd.append(getMap().get("deploy.tempPath"));
+		cmd.append("/");
 		Command command = new Command();
 		command.setCommand(cmd.toString());
 		return command;
@@ -257,7 +305,7 @@ public class CommandServiceImpl implements CommandService{
 		cmd.append(getMap().get("deploy.propertiesPath"));
 		cmd.append("/");
 		cmd.append(deployInfo.getFileName());
-		cmd.append("/WEB-INF/classes/* ");
+		cmd.append("/webapps/ROOT/WEB-INF/classes/* ");
 		cmd.append(getMap().get("deploy.tempPath"));
 		cmd.append("/");
 		cmd.append(deployInfo.getFileName());
@@ -318,9 +366,26 @@ public class CommandServiceImpl implements CommandService{
 
 	public Command getRestartJetty(DeployInfo deployInfo) {
 		StringBuilder cmd = new StringBuilder();
-		cmd.append("cd /home/");
+		cmd.append("/home/");
 		cmd.append(deployInfo.getFileName());
-		cmd.append("| ./jettystart.sh");
+		cmd.append("/jettystart.sh");
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
+	
+	public Command getMkdirBeforeCopyFile(Property property) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("mkdir -p ");
+		cmd.append(getMap().get("deploy.propertiesPath"));
+		cmd.append("/");
+		cmd.append(property.getPath());
+		if(DeployType.getDeployType(property.getDeployType()).equals(DeployType.SERVICE)){
+			cmd.append("/conf");
+		}
+		if(DeployType.getDeployType(property.getDeployType()).equals(DeployType.JETTY)){
+			cmd.append("/webapps/ROOT/WEB-INF/classes");
+		}
 		Command command = new Command();
 		command.setCommand(cmd.toString());
 		return command;
@@ -364,6 +429,15 @@ public class CommandServiceImpl implements CommandService{
 		if(DeployType.getDeployType(property.getDeployType()).equals(DeployType.JETTY)){
 			cmd.append("/webapps/ROOT/WEB-INF/classes");
 		}
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
+
+	public Command getDeleteFiles(String path) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("rm -rf ");
+		cmd.append(path);
 		Command command = new Command();
 		command.setCommand(cmd.toString());
 		return command;
