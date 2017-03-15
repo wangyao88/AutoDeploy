@@ -1,12 +1,11 @@
 package com.cis.command.service.impl;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import com.cis.command.service.CommandService;
+import com.cis.common.util.ServerConnManager;
 import com.cis.deploy.bean.Command;
 import com.cis.deploy.bean.DeployInfo;
 import com.cis.deploy.bean.DeployType;
@@ -316,6 +315,7 @@ public class CommandServiceImpl implements CommandService{
 	}
 
 	public Command getTransferAppToTomcat(DeployInfo deployInfo) {
+		ServerConnManager.executeCommand(deployInfo.getServerType(), this.getMkdir(deployInfo.getPath()));
 		StringBuilder cmd = new StringBuilder();
 		cmd.append("\\cp -rf ");
 		cmd.append(getMap().get("deploy.tempPath"));
@@ -329,6 +329,7 @@ public class CommandServiceImpl implements CommandService{
 	}
 
 	public Command getTransferServiceToFile(DeployInfo deployInfo) {
+		ServerConnManager.executeCommand(deployInfo.getServerType(), this.getMkdir(deployInfo.getPath()));
 		StringBuilder cmd = new StringBuilder();
 		cmd.append("\\cp -rf ");
 		cmd.append(getMap().get("deploy.tempPath"));
@@ -342,6 +343,7 @@ public class CommandServiceImpl implements CommandService{
 	}
 
 	public Command getTransferProjectToJettyt(DeployInfo deployInfo) {
+		ServerConnManager.executeCommand(deployInfo.getServerType(), this.getMkdir(deployInfo.getPath()));
 		StringBuilder cmd = new StringBuilder();
 		cmd.append("\\cp -rf ");
 		cmd.append(getMap().get("deploy.tempPath"));
@@ -437,6 +439,38 @@ public class CommandServiceImpl implements CommandService{
 		StringBuilder cmd = new StringBuilder();
 		cmd.append("rm -rf ");
 		cmd.append(path);
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
+
+	public Command getMkdir(String path) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("mkdir -p ");
+		cmd.append(path);
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		return command;
+	}
+	
+	public Command getMkdirBackupFile(String path) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("mkdir -p ");
+		cmd.append(path);
+		cmd.append("/");
+		cmd.append(getCurrentTime());
+		Command command = new Command();
+		command.setCommand(cmd.toString());
+		command.setSubCommand(path+"/"+getCurrentTime());
+		return command;
+	}
+
+	public Command getBackupFile(String backPath) {
+		StringBuilder cmd = new StringBuilder();
+		cmd.append("mv -f ");
+		cmd.append(DeployManager.getInstance().getPropertiesValue().get("scanPath"));
+		cmd.append("/* ");
+		cmd.append(backPath);
 		Command command = new Command();
 		command.setCommand(cmd.toString());
 		return command;

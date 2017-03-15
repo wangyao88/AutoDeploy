@@ -24,16 +24,16 @@ public class DecompressServiceImpl implements DecompressService{
 				copyFile(deployInfo);
 			}
 			//检查文件是否已经传输或复制完成 每5秒检查一次
-			for(int i = 0; i < 10; i++){
+			for(int i = 0; i < Constants.CHECK_TRANSFER_NUM; i++){
 				if(checkFileMD5Value(deployInfo)){
 					tarFile(deployInfo);
 					break;
 				}
-				if(i == 9){
+				if(i == Constants.CHECK_TRANSFER_NUM-1){
 					log.info("文件传输失败");
 					return false;
 				}
-				TimeUnit.SECONDS.sleep(5);
+				TimeUnit.SECONDS.sleep(Constants.CHECK_TRANSFER_PERIOD_IN_SECOND);
 			}
 			return true;
 		} catch (Exception e) {
@@ -45,8 +45,8 @@ public class DecompressServiceImpl implements DecompressService{
 
 	private boolean checkFileMD5Value(DeployInfo deployInfo) {
 		StringBuilder path = new StringBuilder();
-		path.append(DeployManager.getInstance().getPropertiesValue().get("deploy.tempPath"));
-		path.append("/");
+		path.append(DeployManager.getInstance().getPropertiesValue().get(Constants.DEPLOY_TEMP_PATH));
+		path.append(Constants.SLASH);
 		path.append(getFileName(deployInfo.getFileName()));
 		Command command = DeployManager.getInstance().getCommandService().getMD5Command(path.toString());
 		ServerConnManager.executeCommand(deployInfo.getServerType(), command);
@@ -75,8 +75,8 @@ public class DecompressServiceImpl implements DecompressService{
 	}
 	
 	private String getFileName(String fileName) {
-		if(!fileName.contains("ipa") && !fileName.contains("apk")){
-			fileName += ".tar.gz";
+		if(!fileName.contains(Constants.IPA) && !fileName.contains(Constants.APK)){
+			fileName += Constants.COMPRESSED_PACKET_EXTENSION_IN_LINUX;
 		}
 		return fileName;
 	}

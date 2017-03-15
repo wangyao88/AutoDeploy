@@ -72,4 +72,10 @@ public interface CommandService {
 
 	public Command getDeleteFiles(String path);
 
+	public Command getMkdir(String path);
+
+	public Command getBackupFile(String path);
+	
+	public Command getMkdirBackupFile(String path);
+
 }

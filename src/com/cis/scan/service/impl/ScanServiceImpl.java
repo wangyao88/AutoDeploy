@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.java.Log;
-import lombok.extern.log4j.Log4j;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -50,15 +49,11 @@ public class ScanServiceImpl implements ScanService{
 	}
 
 	private void setUploadFiles(List<String> contents) {
-//		List<String> uploadFiles = new ArrayList<String>();
-//		for(String file : contents){
-//			uploadFiles.add(file.split(Constants.SPLIT)[1]);
-//		}
 		DeployManager.uploadFiles = contents;
 	}
 
 	private List<String> getMD5InDir() {
-		String path = DeployManager.getInstance().getServerService().getScanPath()+"/*";
+		String path = DeployManager.getInstance().getServerService().getScanPath()+Constants.SLASH_STAR;
 		return getMD5InDir(path);
 	}
 
@@ -68,14 +63,12 @@ public class ScanServiceImpl implements ScanService{
 	}
 
 	public List<String> getMD5TXTContent(String fileName) {
-//		Server server = serverService.getZookeeperServer();
 		Command command = DeployManager.getInstance().getCommandService().getFileContent(fileName);
 		ServerConnManager.executeCommand(ServerType.ZOOKEEPER, command);
 		return command.getResult();
 	}
 
 	public List<String> getMD5InDir(String path) {
-//		Server server = serverService.getZookeeperServer();
 		Command command = DeployManager.getInstance().getCommandService().getMD5Command(path);
 		ServerConnManager.executeCommand(ServerType.ZOOKEEPER, command);
 		return command.getResult();
@@ -83,7 +76,7 @@ public class ScanServiceImpl implements ScanService{
 
 	public void clearUploadDir() {
 		log.info("开始删除上传文件");
-		String path = DeployManager.getInstance().getServerService().getScanPath()+"/*";
+		String path = DeployManager.getInstance().getServerService().getScanPath()+Constants.SLASH_STAR;
 		Command command = DeployManager.getInstance().getCommandService().getClearUploadDirCommand(path);
 		ServerConnManager.executeCommand(ServerType.ZOOKEEPER, command);
 	}
@@ -91,7 +84,7 @@ public class ScanServiceImpl implements ScanService{
 	public boolean scan() {
 		boolean isUploadSuccess = false;
 		//每隔一分钟扫描一次  扫八次
-		for(int i = 0; i < 8; i++){
+		for(int i = 0; i < Constants.SCAN_NUM; i++){
 		    isUploadSuccess = isUploadSuccess();
 			if(isUploadSuccess){
 				log.info("上传成功");
@@ -99,7 +92,7 @@ public class ScanServiceImpl implements ScanService{
 			}
 			log.info("尚未上传成功");
 			try {
-				TimeUnit.SECONDS.sleep(1);
+				TimeUnit.SECONDS.sleep(Constants.SCAN_PERIOD_IN_SECOND);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -114,16 +107,15 @@ public class ScanServiceImpl implements ScanService{
 
 	public void deleteAllTempFlie() {
 		try {
-			log.info("30秒后开始删除临时文件");
-			TimeUnit.SECONDS.sleep(30);
+			log.info("开始删除临时文件");
 			List<Command> zookeeperCommands = new ArrayList<Command>();
 			List<Command> nginxCommands = new ArrayList<Command>();
-			Command command = getDeleteTempFileCommand("scanPath");
+			Command command = getDeleteTempFileCommand(Constants.SCAN_PATH);
 			zookeeperCommands.add(command);
-			command = getDeleteTempFileCommand("deploy.tempPath");
+			command = getDeleteTempFileCommand(Constants.DEPLOY_TEMP_PATH);
 			zookeeperCommands.add(command);
 			nginxCommands.add(command);
-		    command = getDeleteTempFileCommand("deploy.propertiesPath");
+		    command = getDeleteTempFileCommand(Constants.DEPLOY_PROPERTIES_PATH);
 			zookeeperCommands.add(command);
 			nginxCommands.add(command);
 			ServerConnManager.batchExecuteCommandsInSameServerType(ServerType.ZOOKEEPER, zookeeperCommands);
@@ -135,9 +127,41 @@ public class ScanServiceImpl implements ScanService{
 	}
 
 	private Command getDeleteTempFileCommand(String key) {
-		String path = DeployManager.getInstance().getPropertiesValue().get(key)+"/*";
+		String path = DeployManager.getInstance().getPropertiesValue().get(key)+Constants.SLASH_STAR;
 		Command command = DeployManager.getInstance().getCommandService().getDeleteFiles(path);
 		return command;
+	}
+
+	public void backupFile() {
+		try {
+			log.info("开始备份上传文件");
+			String path = DeployManager.getInstance().getPropertiesValue().get(Constants.BACKUP_PATH);
+			Command mkdirBackupPath = DeployManager.getInstance().getCommandService().getMkdirBackupFile(path);
+			ServerConnManager.executeCommand(ServerType.ZOOKEEPER, mkdirBackupPath);
+			Command backupFile = DeployManager.getInstance().getCommandService().getBackupFile(mkdirBackupPath.getSubCommand());
+			ServerConnManager.executeCommand(ServerType.ZOOKEEPER, backupFile);
+			TimeUnit.SECONDS.sleep(Constants.SLEEP_AFTER_BACKUP_FILE);
+		} catch (Exception e) {
+			log.info("备份上传文件失败");
+			e.printStackTrace();
+		}
+	}
+
+	public void createAllNeededDirectories() {
+		try {
+			Command mkdirBackupPath = DeployManager.getInstance().getCommandService().getMkdir(DeployManager.getInstance().getPropertiesValue().get(Constants.BACKUP_PATH));
+			Command mkdirScanPath = DeployManager.getInstance().getCommandService().getMkdir(DeployManager.getInstance().getPropertiesValue().get(Constants.SCAN_PATH));
+			Command mkdirTempPath = DeployManager.getInstance().getCommandService().getMkdir(DeployManager.getInstance().getPropertiesValue().get(Constants.DEPLOY_TEMP_PATH));
+			Command mkdirPropertyPath = DeployManager.getInstance().getCommandService().getMkdir(DeployManager.getInstance().getPropertiesValue().get(Constants.DEPLOY_PROPERTIES_PATH));
+			ServerConnManager.executeCommand(ServerType.ZOOKEEPER, mkdirBackupPath);
+			ServerConnManager.executeCommand(ServerType.ZOOKEEPER, mkdirScanPath);
+			ServerConnManager.executeCommand(ServerType.ZOOKEEPER, mkdirTempPath);
+			ServerConnManager.executeCommand(ServerType.ZOOKEEPER, mkdirPropertyPath);
+			ServerConnManager.executeCommand(ServerType.NGINX, mkdirTempPath);
+			ServerConnManager.executeCommand(ServerType.NGINX, mkdirPropertyPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

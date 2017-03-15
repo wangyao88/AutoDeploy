@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.extern.java.Log;
 
+import com.cis.common.bean.Constants;
 import com.cis.deploy.bean.Command;
 import com.cis.deploy.manager.DeployManager;
 import com.cis.server.bean.Server;
@@ -108,7 +109,7 @@ public class ServerConnManager {
 		BufferedReader bufferedReader = null;
 		InputStreamReader inputStreamReader = null;
 		try {
-			channel = (ChannelExec) session.openChannel("exec");
+			channel = (ChannelExec) session.openChannel(Constants.CHANNELEXEC_TYPE);
 			inputStreamReader = new InputStreamReader(channel.getInputStream());
 			bufferedReader = new BufferedReader(inputStreamReader);
 			channel.setCommand(command.getCommand());
@@ -153,7 +154,7 @@ public class ServerConnManager {
 			config.put("StrictHostKeyChecking", "no");
 			session.setConfig(config);
 			session.connect();
-			channel = (ChannelExec) session.openChannel("exec");
+			channel = (ChannelExec) session.openChannel(Constants.CHANNELEXEC_TYPE);
 			BufferedReader in = new BufferedReader(new InputStreamReader(channel.getInputStream()));
 			channel.setCommand(command.getCommand());
 			channel.connect();
@@ -195,11 +196,11 @@ public class ServerConnManager {
 		InputStream input = null;
 	    OutputStream out =null;
 		try {
-			channel = (ChannelShell) session.openChannel("shell");
+			channel = (ChannelShell) session.openChannel(Constants.CHANNELSHELL_TYPE);
 			input = channel.getInputStream();
 			out = channel.getOutputStream();
 			PrintStream ps = new PrintStream(out, true);
-		    channel.connect(3000);
+		    channel.connect(Constants.CHANNEL_CONNECT_TIMEOUT);
 		    log.info("执行命令: " + command.getCommand());
 		    ps.println(command.getCommand());
 		    checkIsFinished(input,channel);
@@ -239,12 +240,16 @@ public class ServerConnManager {
 				sb.append(new String(tmp, 0, i));
 			}
 			final String output = sb.toString();
-			if (output.contains("done") || output.contains("OK!")) {
+			if (output.contains("done..") || output.contains("OK!")) {
 				log.info("启动服务脚本成功执行");
 				break;
 			}
 			if(output.contains("Permission denied")){
 				log.info("启动脚本无执行权限.启动失败!");
+				break;
+			}
+			if(output.contains("Connection refused")){
+				log.info("ERROR:拒绝连接.启动失败!");
 				break;
 			}
 			if (channel.isClosed()) {
@@ -255,7 +260,7 @@ public class ServerConnManager {
 				log.info("启动服务脚本成功执行");
 				break;
 			}
-			TimeUnit.SECONDS.sleep(1);
+			TimeUnit.SECONDS.sleep(Constants.EXEC_SHELL_PERIOD_IN_SECOND);
 	    }
 	    System.out.println("***************************");
 	    System.out.println(sb.toString());

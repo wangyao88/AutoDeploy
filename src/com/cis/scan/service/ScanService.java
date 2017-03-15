@@ -16,4 +16,8 @@ public interface ScanService {
 
 	public void deleteAllTempFlie();
 
+	public void backupFile();
+
+	public void createAllNeededDirectories();
+
 }

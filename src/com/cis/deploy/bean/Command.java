@@ -10,5 +10,6 @@ public class Command {
 	private String command;
 	private List<String> result;
 	private List<String> commands;
+	private String subCommand;
 
 }

@@ -9,9 +9,12 @@ import lombok.extern.java.Log;
 
 import com.cis.command.service.CommandService;
 import com.cis.command.service.impl.CommandServiceImpl;
+import com.cis.common.bean.Constants;
 import com.cis.common.util.PropertyUtil;
+import com.cis.common.util.ServerConnManager;
 import com.cis.decompress.service.DecompressService;
 import com.cis.decompress.service.impl.DecompressServiceImpl;
+import com.cis.deploy.bean.Command;
 import com.cis.deploy.bean.DeployInfo;
 import com.cis.deploy.service.DeployService;
 import com.cis.deploy.service.impl.DeployServiceImpl;
@@ -21,6 +24,7 @@ import com.cis.properties.service.PropertiesService;
 import com.cis.properties.service.impl.PropertiesServiceImpl;
 import com.cis.scan.service.ScanService;
 import com.cis.scan.service.impl.ScanServiceImpl;
+import com.cis.server.bean.ServerType;
 import com.cis.server.service.ServerService;
 import com.cis.server.service.impl.ServerServiceImpl;
 import com.cis.tranfer.service.TransferService;
@@ -63,6 +67,7 @@ public class DeployManager {
 		//1 扫描上传文件夹
 		log.info("开始扫描部署文件");
 		setAllFlagFalse();
+		createAllNeededDirectories();
 		scan();
 		for(String fileName : uploadFiles){
 			DeployInfo deployInfo = deployService.getDeployInfoWithFileName(fileName);
@@ -78,11 +83,20 @@ public class DeployManager {
 			reStartService(deployInfo);
 		}
 		if(this.isScanSuccess()){
+			backupFile();
 			deleteAllTempFlie();
 		}
 		updateProperties();
 	}
 	
+	private void backupFile() {
+		this.getScanService().backupFile();
+	}
+
+	private void createAllNeededDirectories() {
+		this.getScanService().createAllNeededDirectories();
+	}
+
 	private void updateProperties() {
 		log.info("更新系统配置文件信息");
 		this.propertiesValue = PropertyUtil.getPropertiesAllValue();
