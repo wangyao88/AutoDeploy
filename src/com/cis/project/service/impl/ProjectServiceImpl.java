@@ -99,7 +99,7 @@ public class ProjectServiceImpl implements ProjectService{
 	    	if(DeployType.JETTY.equals(deployInfo.getDeployType())){
 	    		command = DeployManager.getInstance().getCommandService().getRestartJetty(deployInfo);
 	    	}
-	    	ServerConnManager.executeCommand(deployInfo.getServerType(), command);
+	    	ServerConnManager.executeShellCommand(deployInfo.getServerType(), command);
 		} catch (Exception e) {
 			return false;
 		}

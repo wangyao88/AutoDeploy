@@ -1,13 +1,16 @@
 package com.cis.common.util;
 
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import lombok.extern.java.Log;
 
@@ -16,6 +19,7 @@ import com.cis.deploy.manager.DeployManager;
 import com.cis.server.bean.Server;
 import com.cis.server.bean.ServerType;
 import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
@@ -122,19 +126,17 @@ public class ServerConnManager {
 				if(inputStreamReader != null){
 					inputStreamReader.close();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
 				if(bufferedReader != null){
 					bufferedReader.close();
 				}
-			} catch (IOException e) {
+				if(channel != null){
+					channel.disconnect();
+					log.info("关闭channel");
+				}
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if(channel != null){
-				channel.disconnect();
-			}
+			
 		}
 		command.setResult(result);
 		return result;
@@ -180,6 +182,85 @@ public class ServerConnManager {
 		}
 	}
 	
+	public static void executeShellCommand(ServerType serverType,Command command){
+		if(command == null){
+			return;
+		}
+		Session session = ServerConnManager.sessionPool.get(serverType);
+		if(session == null || !session.isConnected()){
+			initSessionPoolByServerType(serverType);
+		}
+		session = ServerConnManager.sessionPool.get(serverType);
+		ChannelShell channel = null;
+		InputStream input = null;
+	    OutputStream out =null;
+		try {
+			channel = (ChannelShell) session.openChannel("shell");
+			input = channel.getInputStream();
+			out = channel.getOutputStream();
+			PrintStream ps = new PrintStream(out, true);
+		    channel.connect(3000);
+		    log.info("执行命令: " + command.getCommand());
+		    ps.println(command.getCommand());
+		    checkIsFinished(input,channel);
+		} catch (Exception e) {
+			log.info("执行命令["+command.getCommand()+"]失败。失败原因:"+e.getLocalizedMessage());
+			e.printStackTrace();
+		}finally{
+			try {
+				if(input != null){
+					input.close();
+				}
+				if(out != null){
+					out.close();
+				}
+				if(channel != null){
+					channel.disconnect();
+					log.info("-----------关闭channel------------");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.info("-----------关闭资源出错------------");
+			}
+		}
+	}
+	
+	private static void checkIsFinished(InputStream input,ChannelShell channel) throws Exception{
+		StringBuilder sb = new StringBuilder();
+		int size = 1024;
+		final byte[] tmp = new byte[size];
+	    while (true) {
+			while (input.available() > 0) {
+				int i = input.read(tmp, 0, 1024);
+				if (i < 0) {
+					log.info("启动服务脚本成功执行");
+					break;
+				}
+				sb.append(new String(tmp, 0, i));
+			}
+			final String output = sb.toString();
+			if (output.contains("done") || output.contains("OK!")) {
+				log.info("启动服务脚本成功执行");
+				break;
+			}
+			if(output.contains("Permission denied")){
+				log.info("启动脚本无执行权限.启动失败!");
+				break;
+			}
+			if (channel.isClosed()) {
+				if (input.available() > 0) {
+					int i = input.read(tmp, 0, 1024);
+					sb.append(new String(tmp, 0, i));
+				}
+				log.info("启动服务脚本成功执行");
+				break;
+			}
+			TimeUnit.SECONDS.sleep(1);
+	    }
+	    System.out.println("***************************");
+	    System.out.println(sb.toString());
+	}
+
 	public static void main(String[] args) {
 		Server server = new Server();
 		server.setUserName("root");
@@ -187,11 +268,8 @@ public class ServerConnManager {
 		server.setHost("192.168.25.130");
 		Command command = new Command();
 		command.setCommand("/home/osp/jettystart.sh");//  pwd
-		executeCommand(server,command);
-		List<String> result = command.getResult();
-		for(int i = 0; i < result.size(); i++){
-			System.out.println(result.get(i));
-		}
+//		executeCommand(server,command);
+		executeShellCommand(ServerType.ZOOKEEPER,command);
 	}
 	
 }

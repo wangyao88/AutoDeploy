@@ -37,11 +37,11 @@ public class DeployServiceImpl implements DeployService {
 				deployInfo.setDeployType(DeployType.getDeployType(value));
 				deployInfo.setTempPath(propertiesValue.get("deploy.tempPath"));
 				deployInfo.setMd5Value(md5Value);
-				deployInfo.setPort(propertiesValue.get(key+".port"));
 				if(realFileName.contains("apk")||realFileName.contains("ipa")){
 					deployInfo.setApkOrIpa(true);
 				}else{
 					deployInfo.setApkOrIpa(false);
+					deployInfo.setPort(propertiesValue.get(key+".port"));
 				}
 				break;
 			}

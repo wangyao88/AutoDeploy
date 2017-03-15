@@ -356,9 +356,8 @@ public class CommandServiceImpl implements CommandService{
 
 	public Command getRestartService(DeployInfo deployInfo) {
 		StringBuilder cmd = new StringBuilder();
-		cmd.append("cd ");
 		cmd.append(deployInfo.getPath());
-		cmd.append("/bin | ./start.sh");
+		cmd.append("/bin/start.sh");
 		Command command = new Command();
 		command.setCommand(cmd.toString());
 		return command;
